@@ -1,0 +1,1143 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -992,
+        960
+      ],
+      "id": "81521d84-f429-44e5-8671-637d9cabb3ff",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "98qkEfGDzbtdJjSC",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.category}}",
+                    "rightValue": "spam",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "5c336239-df62-4e62-b30d-c46989b9e062"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "77231a48-51b6-4d35-94e5-807ce90f0ac2",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "inquiry",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "82e651ad-609e-4211-a025-42487aa3930d",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "re_take_exam",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9a43ff1c-da25-47b0-afbb-96f605f736f6",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "course_registration",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -144,
+        928
+      ],
+      "id": "b85ba7bf-0c7a-417f-8333-ddb0ea55cb35",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n\"Authorization\": \"Bearer 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\",\n\"Content-Type\": \"application/json\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.1-8b-instant\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Classify this email into one of: spam, inquiry, re_take_exam, course_registration.\\n\\nReturn ONLY valid JSON in this format:\\n\\n{\\n  \\\"category\\\": \\\"\\\",\\n  \\\"confidence\\\": 0.0\\n}\\n\\nEmail:\\n{{$json.snippet}}\"\n    }\n  ],\n  \"temperature\": 0\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -688,
+        960
+      ],
+      "id": "735c3ebd-dab0-4e9e-a226-6d149d08ecdd",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"email_id\": \"{{ $('Gmail Trigger').item.json.id }}\",\n  \"subject\": \"{{ $('Gmail Trigger').item.json.Subject }}\",\n  \"body\": \"{{ $('Gmail Trigger').item.json.snippet }}\",\n  \"from\": \"{{ $('Gmail Trigger').item.json.From }}\",\n  \"category\": \"{{ JSON.parse($json.choices[0].message.content).category }}\",\n  \"confidence\": {{ JSON.parse($json.choices[0].message.content).confidence }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -448,
+        960
+      ],
+      "id": "ba75d851-4ce6-41fb-93b8-fd4606fa0348",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -496
+      ],
+      "id": "17f36415-a66a-405f-90a6-5fe7790f314b",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "chromaCollection": {
+          "__rl": true,
+          "value": "=university_policies",
+          "mode": "id"
+        },
+        "options": {
+          "clearCollection": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreChromaDB",
+      "typeVersion": 1.3,
+      "position": [
+        -1136,
+        -544
+      ],
+      "id": "556d8637-51ef-42dc-8e81-649238194a9a",
+      "name": "Chroma Vector Store1",
+      "credentials": {
+        "chromaSelfHostedApi": {
+          "id": "xrLMS0MV3xdRKvhb",
+          "name": "ChromaDB Self-Hosted account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        -1136,
+        -336
+      ],
+      "id": "1d583616-3012-46f3-b8b4-64af607d5ff1",
+      "name": "Embeddings Ollama1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "YJiA1Hb7xD6tKUYx",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -992,
+        -336
+      ],
+      "id": "ac60c3d4-9740-4bf7-8192-000e45786b47",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 50,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        -144
+      ],
+      "id": "5b18dc88-623f-4611-8262-78c3e00a0e62",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dcbdb3c9-b8f5-43e8-bc76-c0d7d27fd91a",
+              "name": "policy",
+              "value": "FAST National University of Computer and Emerging Sciences (FAST-NUCES)  Official Academic Policy and Student Handbook - Administrative Guidelines  1. ATTENDANCE POLICY & EXAMINATION ELIGIBILITY - FAST-NUCES enforces a strict, mandatory 75% minimum attendance policy for all registered undergraduate and graduate courses, including laboratory components. - Any student whose attendance drops below 75% in a specific course will be automatically awarded an \"FA\" grade (Failure due to shortage of Attendance). - A student receiving an FA grade is strictly debarred from sitting for the Final Examination of that course, with zero exceptions.  - CORRESPONDING LABS: Laboratory components are treated as entirely separate 1-credit hour courses. Attendance in labs is tracked independently from the corresponding theoretical course.  2. UNDERGRADUATE GRADING SCALE (HEC 12-GRADE SYSTEM) The university utilizes a fixed-point relative grading scale to map letter grades to Grade Points (GP) as follows: - A+ / A: 4.00 Grade Points (Outstanding / Exceptional) - A-: 3.67 Grade Points (Very Good) - B+: 3.33 Grade Points (Good) - B: 3.00 Grade Points (Above Average) - B-: 2.67 Grade Points (Average) - C+: 2.33 Grade Points (Below Average) - C: 2.00 Grade Points (Satisfactory / Minimum Graduation Average) - C-: 1.67 Grade Points (Pass / Subject to Repetition) - D+: 1.33 Grade Points (Low Pass) - D: 1.00 Grade Points (Minimum Pass) - F: 0.00 Grade Points (Fail)  3. ACADEMIC PROBATION AND DISMISSAL RULES - MINIMUM GRADUATION REQ: To qualify for the award of a Bachelor's (BS) degree, a student must secure and maintain a minimum Cumulative Grade Point Average (CGPA) of 2.00 out of 4.00. - PROBATION TRIGGER: If a student's Cumulative CGPA falls strictly below 2.00 at the end of any regular semester, they are automatically placed on \"First Academic Probation\". - COURSE LOAD RESTRICTION: Students on active academic probation are heavily restricted in their course enrollment, typically capped at a maximum of 12 credit hours per semester to facilitate academic recovery. - DEGREE CANCELLATION: Accumulating three (3) consecutive academic warnings (remaining on probation for three consecutive regular semesters without elevating the CGPA back to 2.00) results in automatic degree cancellation and formal dismissal from the university. - COURSE REPETITION: When a student repeats a course in which they previously earned an 'F' or a low passing grade, the newly obtained grade entirely replaces the old grade in the final CGPA calculation logic.  4. UNIVERSITY DEAN'S LIST AND RECTOR'S LIST HONORS - DEAN'S LIST OF HONORS: To qualify for the prestigious Dean's List at the end of a regular semester, an undergraduate student must secure a Semester GPA (SGPA) of strictly 3.50 or higher. Additionally, they must have registered for a full-time course load (minimum 15 credit hours), maintained a minimum of 75% attendance in all courses, and have no active disciplinary or \"F\" grades. - RECTOR'S LIST OF HONORS: Awarded to students who maintain a Cumulative CGPA of 3.80 or higher continuously throughout the duration of their degree program.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1440,
+        -544
+      ],
+      "id": "4bde572b-3b58-4021-9682-5c6cc0a839b5",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "62c0ac3b-0e5a-4dc4-8a7b-94cdcc43a746",
+              "name": "Subject",
+              "value": "={{ $json.response.split('BODY:')[0].replace('SUBJECT:', '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "801de90a-bf18-4c72-b696-081365575c44",
+              "name": "=Body",
+              "value": "={{ $json.response.split('BODY:')[1].trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1136,
+        -192
+      ],
+      "id": "5ffcbee6-e102-491c-a009-6126b1ad9c92",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.Subject }}",
+        "message": "={{ $json.Body }}",
+        "options": {
+          "threadId": "={{ $('Edit Fields1').item.json.email_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1376,
+        -192
+      ],
+      "id": "4628379f-ffcb-4895-ba19-3eec64f410a6",
+      "name": "Create a draft",
+      "webhookId": "b3fe70a9-6198-48fb-9c44-d79befe788bb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "98qkEfGDzbtdJjSC",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        784,
+        0
+      ],
+      "id": "a60c2c31-9bc2-4ace-ae0d-38abd8c5d512",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "ZHtPhRW2wnSjIYZb",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body }}",
+        "options": {
+          "systemPromptTemplate": "You are an automated academic administrative assistant responsible for drafting email responses to student inquiries based strictly on university policy.\n\nUse the following pieces of retrieved context to answer the question. If you do not know the answer based on the context, state that you cannot find the official policy and instruct the student to contact the academic department office. Do not make up an answer.\n\nYou must provide your response using the exact structure below, including the \"SUBJECT:\" and \"BODY:\" delimiters:\n\nSUBJECT: [Draft a concise, professional subject line here matching the student's issue]\nBODY:\nDear Student,\n\n[Draft your formal, policy-grounded response email here based on the context]\n\nBest regards,\nAcademic Administration Office\n----------------\nContext: {context}You are an automated academic administrative assistant responsible for drafting email responses to student inquiries based strictly on university policy.\n\nUse the following pieces of retrieved context to answer the question. If you do not know the answer based on the context, state that you cannot find the official policy and instruct the student to contact the academic department office. Do not make up an answer.\n\nYou must provide your response using the exact structure below, including the \"SUBJECT:\" and \"BODY:\" delimiters:\n\nSUBJECT: [Draft a concise, professional subject line here matching the student's issue]\nBODY:\nDear Student,\n\n[Draft your formal, policy-grounded response email here based on the context]\n\nBest regards,\nAcademic Administration Office\n----------------\nContext: {context}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainRetrievalQa",
+      "typeVersion": 1.7,
+      "position": [
+        784,
+        -192
+      ],
+      "id": "ae7fcf45-0e0b-4dad-8add-69ef0938fd71",
+      "name": "Question and Answer Chain"
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        672,
+        496
+      ],
+      "id": "f4b47979-a643-4dec-857a-2c0f5af56822",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "YJiA1Hb7xD6tKUYx",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.retrieverVectorStore",
+      "typeVersion": 1,
+      "position": [
+        752,
+        144
+      ],
+      "id": "106914a5-60b1-497d-b84c-dd914dbe64b2",
+      "name": "Vector Store Retriever"
+    },
+    {
+      "parameters": {
+        "chromaCollection": {
+          "__rl": true,
+          "value": "university_policies",
+          "mode": "list",
+          "cachedResultName": "university_policies"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreChromaDB",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        320
+      ],
+      "id": "3a1bb8c9-adee-40ec-90cc-21baf58a2741",
+      "name": "Chroma Vector Store",
+      "credentials": {
+        "chromaSelfHostedApi": {
+          "id": "xrLMS0MV3xdRKvhb",
+          "name": "ChromaDB Self-Hosted account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "simple": false,
+        "options": {
+          "dataPropertyAttachmentsPrefixName": "attachment",
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        928
+      ],
+      "id": "59cb65fc-a33a-4666-8856-b55a64ed25e0",
+      "name": "Get a message",
+      "webhookId": "c2f31a1e-2ad3-4417-a3cd-9ade847f4250",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "98qkEfGDzbtdJjSC",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "attachment0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        816,
+        928
+      ],
+      "id": "137781bf-1912-40b1-9d91-d7aab50808ef",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Please evaluate the following academic request:\n\nSTUDENT EMAIL DETAILS:\n- Sender Info: {{ $('Gmail Trigger').item.json.From }}\n- Email Subject: {{ $('Gmail Trigger').item.json.Subject }}\n- Email Content: {{ $('Gmail Trigger').item.json.snippet }}\n\nEXTRACTED ATTACHMENT TEXT CONTENT:\n{{ $json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an advanced academic administrative compliance officer responsible for evaluating student \"Re-take Exam\" requests based strictly on institutional policy verification rules.     EVALUATION CRITERIA & POLICY RULES:    - IDENTITY VERIFICATION: Compare the sender's full name from the email header with the name printed on the attached documentation. They must explicitly match. If names do not match, flag as fraudulent and DISAPPROVE.    - VALIDITY VERIFICATION: Review the document text for hallmarks of validity (e.g., presence of official institutional headers, doctor names, stamps, dates). If the document lacks verifiable structure, contains contradicting dates, or is missing entirely, DISAPPROVE.    - POLICY ELIGIBILITY CRITERIA: A re-take exam request can ONLY be approved if the attachment explicitly proves a valid Medical Emergency, Severe Bereavement, or Official University Representation.     OUTPUT FORMAT REQUIREMENTS:    You must output your final evaluation in the exact format below, using the \"STATUS:\", \"REASON:\", \"SUBJECT:\", and \"BODY:\" delimiters:     STATUS: [Insert either APPROVED or DISAPPROVED]    REASON: [Insert a concise, 1-sentence analytical reason for your choice]    SUBJECT: Re-take Exam Request Status: {{ $('Gmail Trigger').item.json.Subject }}    BODY:    Dear Student,     Your formal request for a re-take examination has been analyzed. Your request status is: [APPROVED / DISAPPROVED].     [Provide 2-3 sentences explaining the exact outcome. If disapproved, state the precise technical reason such as name mismatch, invalid dates, or insufficient grounds.]     Best regards,    Academic Administration Office"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1024,
+        928
+      ],
+      "id": "f47371f3-e73c-4f9b-ad58-9d5db6cd66f7",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        1136
+      ],
+      "id": "7af6c6d4-fe64-4fa5-99c1-18095378464e",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "ZHtPhRW2wnSjIYZb",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d0e1d73d-95d5-4823-afbb-590f9eb21ff1",
+              "name": "Status",
+              "value": "={{ $json.text.split('REASON:')[0].replace('STATUS:', '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "d6477bb2-b4ff-4938-b092-cc11c2a5c14d",
+              "name": "Reason",
+              "value": "={{ $json.text.split('SUBJECT:')[0].split('REASON:')[1].trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "2037c6b9-120e-4a6f-aaae-165d74315773",
+              "name": "Student_Email",
+              "value": "={{ $('Gmail Trigger').item.json.From }}",
+              "type": "string"
+            },
+            {
+              "id": "0d089ecb-5522-44c2-844d-76ee5bc017d4",
+              "name": "Subject",
+              "value": "={{ $json.text.split('BODY:')[0].match(/SUBJECT:\\s*(.*)/)[1].replace(/\\n/g, '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "d4eada35-8b36-4680-a000-f9752825ee78",
+              "name": "Body",
+              "value": "={{ $json.text.split('BODY:')[1].trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1376,
+        928
+      ],
+      "id": "7cdd539b-4784-414d-a44d-6d97e8ca4190",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "149Y_05TGEJ1Pcj_ZMbgWPtszztLYU3F3Y9Fekl2jIKI",
+          "mode": "list",
+          "cachedResultName": "n8n re-take ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/149Y_05TGEJ1Pcj_ZMbgWPtszztLYU3F3Y9Fekl2jIKI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/149Y_05TGEJ1Pcj_ZMbgWPtszztLYU3F3Y9Fekl2jIKI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "={{ $json.Status }}",
+            "Reason": "={{ $json.Reason }}",
+            "Student_Email": "={{ $json.Student_Email }}"
+          },
+          "matchingColumns": [
+            "text"
+          ],
+          "schema": [
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Student_Email",
+              "displayName": "Student_Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Body",
+              "displayName": "Body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1664,
+        928
+      ],
+      "id": "444c3f7f-19a4-4971-8917-a896a1dd4437",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9l3ClDekE7TavVW4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.Subject }}",
+        "message": "={{ $json.Body }}",
+        "options": {
+          "threadId": "={{ $('Gmail Trigger').item.json.id }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1664,
+        1168
+      ],
+      "id": "5d8abbf8-c1a5-489d-8a69-289e634d629f",
+      "name": "Create a draft1",
+      "webhookId": "fed90766-e55e-4863-a482-d1a7837bf02f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "98qkEfGDzbtdJjSC",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1FtVu9bQWxqN5TNoOvJzOFmYX6jomxIruE9XlvWMAbuw",
+          "mode": "list",
+          "cachedResultName": "n8n Student DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FtVu9bQWxqN5TNoOvJzOFmYX6jomxIruE9XlvWMAbuw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "roll no",
+              "lookupValue": "={{ $json['roll no'].toLowerCase() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        1776
+      ],
+      "id": "5d0f2021-a6bc-4385-9709-874807e0d601",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9l3ClDekE7TavVW4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8c7b009d-f8e5-40f3-bf76-05a5a1ac70e1",
+              "name": "roll no",
+              "value": "={{ $('Gmail Trigger').item.json.To.match(/<([^@]+)@/)[1].slice(1, 3) + 'K-' + $('Gmail Trigger').item.json.To.match(/<([^@]+)@/)[1].slice(3) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        352,
+        1776
+      ],
+      "id": "b9a0c85b-f43e-42c1-9b33-1baa55ba39e7",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Please evaluate this enrollment request:\n\nSTUDENT REQUEST DETAILS:\n- Email: {{ $('Gmail Trigger').item.json.From }}\n- Request Content: {{ $('Gmail Trigger').item.json.snippet }}\n\nSTUDENT CURRENT ACADEMIC RECORD:\n- Current CGPA: {{ $json.CGPA }}\n- Academic Standing: {{ $json.Status }}\n- Currently Enrolled Credit Hours: {{ $json.Current_CH }}\n\nINSTITUTIONAL ENROLLMENT REGULATION CONTEXT:\n- Maximum credit hour limit for Regular students: 18 CH.\n- Maximum credit hour limit for Probationary students: 12 CH.\n- Corequisite rule: To enroll in advanced courses (e.g., Advanced OOP or FYP), the student's current CGPA must be equal to or greater than 2.00.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an automated university registrar module. Your job is to approve or disapprove course registration requests based strictly on academic parameters.  RULES: 1. CREDIT HOUR CAP CHECK: Check the student's Academic Standing. If they are on \"Probation\" and their requested course pushes their total credit hours over 12 CH, you must DISAPPROVE. If they are \"Regular\" and it exceeds 18 CH, you must DISAPPROVE. 2. PROBATION ELIGIBILITY CHECK: Verify the student's current CGPA against the requested course requirements.  You must output your response in this exact format:  STATUS: [APPROVED or DISAPPROVED] REASON: [1-sentence clear administrative reason] SUBJECT: Course Registration Update: {{ $('Gmail Trigger').item.json.Subject }} BODY: Dear Student,  Your course registration request has been processed.   Status: [APPROVED / DISAPPROVED] Reason: [Provide the clean justification here]  Best regards, Academic Registrar Office"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        848,
+        1776
+      ],
+      "id": "c3338d7f-0962-461d-bf8f-28cbb2509b9c",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        848,
+        1984
+      ],
+      "id": "d1804102-83d8-4866-ac07-92b0ad4ce2e5",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "ZHtPhRW2wnSjIYZb",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ef533405-7780-45c3-a876-40fcd40df385",
+              "name": "emailSubject",
+              "value": "={{ $json.text.split('BODY:')[0].match(/SUBJECT:\\s*(.*)/)[1].replace(/\\n/g, '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "2660097c-ac12-46af-b48d-dd33ec6e81f9",
+              "name": "emailBody",
+              "value": "={{ $json.text.split('BODY:')[1].trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        1776
+      ],
+      "id": "7f6521bc-f278-4a04-931d-2a4895156997",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.emailSubject }}",
+        "message": "={{ $json.emailBody }}",
+        "options": {
+          "threadId": "={{ $('Gmail Trigger').item.json.id }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1408,
+        1776
+      ],
+      "id": "96f22034-12f7-4c68-b154-6e6d2fa7adda",
+      "name": "Create a draft2",
+      "webhookId": "0b343594-78ff-4c6b-a545-9b8ab9d3b642",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "98qkEfGDzbtdJjSC",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Question and Answer Chain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Chroma Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Chroma Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Chroma Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Question and Answer Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Question and Answer Chain": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Chroma Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Retriever": {
+      "ai_retriever": [
+        [
+          {
+            "node": "Question and Answer Chain",
+            "type": "ai_retriever",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chroma Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Retriever",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a draft1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Create a draft2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fd0b37faa6c2c1c4d2713452c3434239b6ddb7e73f06627383456822983eaddf"
+  }
+}
